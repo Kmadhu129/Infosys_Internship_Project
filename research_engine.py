@@ -17,21 +17,63 @@ llm = ChatGroq(
 tavily = TavilyClient(api_key=TAVILY_KEY)
 
 
+# ---------- UTILS ----------
+def is_url(text: str) -> bool:
+    return bool(re.match(r"https?://", text.strip()))
+
+
+def extract_url_content(url: str) -> str:
+    try:
+        html = requests.get(url, timeout=10).text
+        soup = BeautifulSoup(html, "html.parser")
+        text = " ".join(p.get_text(strip=True) for p in soup.find_all("p")[:60])
+        return text
+    except Exception:
+        return ""
+
+
 # ---------- GENERAL WEB ----------
 def general_web_answer(prompt: str) -> str:
-    response = llm.invoke(prompt)
-    return response.content
+    return llm.invoke(prompt).content
 
 
 # ---------- ACADEMIC PAPERS ----------
-def research_paper_answer(prompt: str):
+def research_paper_answer(query: str):
     """
-    Uses Tavily to fetch academic content and answers strictly from it.
-    Returns answer + reference links
+    Handles BOTH:
+    - topic-based academic search
+    - direct paper URL analysis
     """
 
+    # ✅ CASE 1: USER PASTED A URL
+    if is_url(query):
+        content = extract_url_content(query)
+
+        if not content:
+            return "Unable to extract content from the given URL.", []
+
+        prompt = f"""
+You are an academic research assistant.
+
+Analyze ONLY the following paper content.
+
+Content:
+{content}
+
+User request:
+{query}
+
+Rules:
+- Answer strictly from this content
+- Do not hallucinate
+"""
+
+        answer = llm.invoke(prompt).content
+        return answer, [query]
+
+    # ✅ CASE 2: NORMAL ACADEMIC SEARCH
     search_results = tavily.search(
-        query=prompt,
+        query=f"{query} research paper",
         max_results=3,
         search_depth="advanced"
     )
@@ -51,7 +93,7 @@ def research_paper_answer(prompt: str):
     if not papers_text.strip():
         return "No relevant academic papers found.", []
 
-    final_prompt = f"""
+    prompt = f"""
 You are an academic research assistant.
 
 Answer ONLY using the provided research content.
@@ -60,15 +102,14 @@ Research Content:
 {papers_text}
 
 User Question:
-{prompt}
+{query}
 
 Rules:
 - If user asks for title → give title only
-- If user asks for summary → summarize only that paper
-- If user asks for methodology → extract methodology only
-- Do NOT hallucinate
+- If user asks for methodology → give methodology only
+- If user asks for limitations → give limitations only
+- Do not add extra information
 """
 
-    answer = llm.invoke(final_prompt).content
-
+    answer = llm.invoke(prompt).content
     return answer, references
