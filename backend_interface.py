@@ -1,24 +1,62 @@
 from research_engine import general_web_answer, research_paper_answer
+import re
+
+
+def is_follow_up(query: str) -> bool:
+    follow_up_keywords = [
+        "summarize", "summary", "title", "methodology",
+        "limitations", "advantages", "applications",
+        "first paper", "second paper", "this paper",
+        "that paper", "previous paper"
+    ]
+    q = query.lower()
+    return any(k in q for k in follow_up_keywords)
 
 
 def run_research(query, messages, mode):
     """
-    query    : current user question
-    messages : full chat history (for context)
+    query    : latest user input ONLY
+    messages : full chat history
     mode     : General Web | Academic Papers
     """
 
-    # ---- Build conversational context ----
+    # ---- Build conversation context for LLM ----
     context_text = ""
     for m in messages:
-        role = m["role"].upper()
-        content = m["content"]
-        context_text += f"{role}: {content}\n"
+        context_text += f"{m['role'].upper()}: {m['content']}\n"
 
-    # ---- Combine context + new question ----
-    final_query = f"""
-You are a research assistant.
+    # ==========================
+    # ACADEMIC PAPERS MODE
+    # ==========================
+    if mode == "Academic Papers":
 
+        # 🔑 FOLLOW-UP QUESTION → NO TAVILY
+        if is_follow_up(query):
+            prompt = f"""
+You are an academic research assistant.
+
+Conversation context:
+{context_text}
+
+User follow-up question:
+{query}
+
+Rules:
+- Answer ONLY from previously discussed papers
+- Do NOT search the web
+- Do NOT introduce new papers
+- Be precise and concise
+"""
+            answer = general_web_answer(prompt)
+            return answer, []
+
+        # 🔑 FIRST ACADEMIC QUERY → USE TAVILY
+        return research_paper_answer(query)
+
+    # ==========================
+    # GENERAL WEB MODE
+    # ==========================
+    prompt = f"""
 Conversation so far:
 {context_text}
 
@@ -26,16 +64,8 @@ User question:
 {query}
 
 Rules:
-- Use previous context if the question refers to earlier answers
-- If user refers to paper numbers, titles, links, summarize or extract ONLY from those
-- Do not add unrelated information
+- Answer clearly
+- Use previous context if needed
 """
-
-    # ---- Route by mode ----
-    if mode == "Academic Papers":
-        answer, refs = research_paper_answer(final_query)
-    else:
-        answer = general_web_answer(final_query)
-        refs = []
-
-    return answer, refs
+    answer = general_web_answer(prompt)
+    return answer, []
