@@ -5,3 +5,6 @@ langchain-groq
 tavily-python
 pymupdf
 requests
+beautifulsoup4
+requests
+lxml
