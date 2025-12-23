@@ -1,0 +1,12 @@
+[
+  {
+    "time": "2025-12-15 22:23",
+    "question": "What is AI ?",
+    "answer": "Based on the provided research papers, I can define Artificial Intelligence (AI) as:\n\n\"Artificial Intelligence (AI) is the theory and development of computer systems capable of performing tasks that historically required human intelligence, such as recognizing speech, making decisions, and identifying patterns\" (What Is Artificial Intelligence? Definition, Uses, and Types - Coursera).\n\nIn other words, AI is the simulation of human intelligence processes by machines, such as computer systems (What Is Artificial Intelligence? Definition, Uses, and Types - Coursera).\n\nAccording to the Wikipedia article, AI is \"the capability of computational systems to perform tasks typically associated with human intelligence, such as learning, reasoning, problem-solving, perception, and decision-making.\"\n\nThe GeeksforGeeks article further elaborates on AI by stating that it enables machines and computers to perform tasks that typically require human intelligence, helping systems learn from data, recognize patterns and make decisions to solve complex problems.\n\nReferences:\n\n1. \"What Is Artificial Intelligence? Definition, Uses, and Types\" - Coursera\n2. \"Artificial intelligence\" - Wikipedia\n3. \"What is Artificial Intelligence (AI)\" - GeeksforGeeks"
+  },
+  {
+    "time": "2025-12-15 22:23",
+    "question": "What is AI ?",
+    "answer": "Artificial Intelligence (AI) is a computer system that can think and learn like a human being. It uses algorithms and data to make decisions, solve problems, and perform tasks on its own, without being explicitly programmed for each task."
+  }
+]
